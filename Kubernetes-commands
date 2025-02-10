@@ -1,0 +1,22 @@
+kubectl get pods
+kubectl run nginx-pod --image=nginx --restart=Never --port=80 -n default
+kubectl expose pod nginx-pod --type=NodePort --port=80 --name=nginx-service
+kubectl get svc
+Kubectl apply -f deployment.yaml 
+kubectl describe pod <pod-name>
+kubectl scale deployment nginx-deployment --replicas=6
+kubectl delete pod myapp-pod
+kubectl delete -f deployment.yaml
+
+# login to the pod 
+kubectl exec -n default nginx-pod -it -- /bin/sh
+
+# login to the specific conatiner in the pod.
+kubectl exec -n default multi-pod  --container nginx-container -it -- /bin/bash 
+
+# how to check the os version of kubernets.
+cat /etc/os-release
+# where is the nginx index file are stored 
+cd usr/share/nginx/html/ 
+cat index.html
+
