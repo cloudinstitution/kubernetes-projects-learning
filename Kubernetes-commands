@@ -26,5 +26,6 @@ cat index.html
 echo -n 'cloudinstituion' > username.txt 
 echo -n 'password' > password.txt
 kubectl create secret generic database-credentials --from-file=username.txt     --from-file=password.txt 
+kubectl get secrets
 
 
