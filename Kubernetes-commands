@@ -20,3 +20,11 @@ cat /etc/os-release
 cd usr/share/nginx/html/ 
 cat index.html
 
+
+# Kubenretes secrets
+
+echo -n 'cloudinstituion' > username.txt 
+echo -n 'password' > password.txt
+kubectl create secret generic database-credentials --from-file=username.txt     --from-file=password.txt 
+
+
