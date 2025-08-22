@@ -10,6 +10,16 @@ kubectl scale deployment nginx-deployment --replicas=6
 kubectl delete pod myapp-pod
 kubectl delete -f deployment.yaml
 
+
+Volume
+========
+
+kubectl get PersistentVolume
+
+
+
+
+
 # login to the pod 
 kubectl exec -n default nginx-pod -it -- /bin/sh
 
