@@ -1,10 +1,15 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: two-pods-nginx
+  name: nginx-multi-container-pod
+  labels:
+    app: nginx-multi
 spec:
   containers:
-  - name: nginx1
-    image: nginx:1.14.2
-  - name: nginx2
-    image: nginx:1.14.2
+    - name: nginx
+      image: nginx:latest
+      ports:
+        - containerPort: 81
+    - name: sidecar
+      image: busybox:latest
+      command: ["sh", "-c", "while true; do echo 'Sidecar container is running'; sleep 10; done"]
