@@ -22,7 +22,7 @@ kubectl apply -f volume.yaml
 
 
 # login to the pod 
-kubectl exec -n default nginx-pod -it -- /bin/sh
+kubectl exec nginx -it -- /bin/sh
 
 # login to the specific conatiner in the pod.
 kubectl exec -n default multi-pod  --container nginx-container -it -- /bin/bash 
