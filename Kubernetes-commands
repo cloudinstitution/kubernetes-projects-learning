@@ -1,7 +1,8 @@
-kubectl get pods
 kubectl cluster-info
 kubectl config view
-kubectl run nginx-pod --image=nginx --restart=Never --port=80 -n default
+sudo kubectl get nodes
+kubectl get pods
+kubectl run nginx-pod --image=nginx 
 kubectl expose pod nginx-pod --type=NodePort --port=80 --name=nginx-service
 kubectl get svc
 Kubectl apply -f deployment.yaml 
