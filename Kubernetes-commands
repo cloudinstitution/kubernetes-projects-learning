@@ -9,7 +9,7 @@ kubectl describe pod <pod-name>
 kubectl scale deployment nginx-deployment --replicas=6
 kubectl delete pod myapp-pod
 kubectl delete -f deployment.yaml
-
+kubectl get pods -o wide
 
 Volume
 ========
