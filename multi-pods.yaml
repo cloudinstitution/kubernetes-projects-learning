@@ -4,11 +4,11 @@ metadata:
   name: multi-pod-nginx
 spec:
   containers:
-  - name: nginx-1
+  - name: nginx-1         
     image: nginx:1.14.2
     ports:
     - containerPort: 82
-  - name: nginx-2
+  - name: nginx-2        
     image: nginx:1.14.2
     ports:
     - containerPort: 85
