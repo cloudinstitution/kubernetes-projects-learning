@@ -1,25 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notes-app-deployment
+  name: nginx
   labels:
-    app: notes-app
+    app: nginx
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: notes-app
+      app: nginx
   template:
     metadata:
       labels:
-        app: notes-app
+        app: nginx
     spec:
       containers:
-      - name: notes-app-deployment
-        image: pavansa/notes-app
-        resources:
-          requests:
-            cpu: "100m"
-        imagePullPolicy: IfNotPresent
+      - name: nginx
+        image: nginx:latest
         ports:
-        - containerPort: 3000
+          - containerPort: 80
