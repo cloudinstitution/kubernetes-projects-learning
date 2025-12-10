@@ -13,6 +13,7 @@ chmod 777 minikube
 sudo mv minikube /usr/local/bin/
 
 sudo  minikube start --force
+minikube dashboard --url &
 kubectl proxy --address=0.0.0.0 --accept-hosts='^127\.0\.0\.1$' --disable-filter=true & 
 
 sudo kubectl get pods -A
