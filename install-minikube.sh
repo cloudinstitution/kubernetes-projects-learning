@@ -12,8 +12,13 @@ chmod 777 minikube
 sudo mv minikube /usr/local/bin/
 
 sudo  minikube start --force
-minikube dashboard --url &
-kubectl proxy --address=0.0.0.0 --accept-hosts='^127\.0\.0\.1$' --disable-filter=true & 
+ minikube addons enable dashboard 
+
+ kubectl proxy --address='0.0.0.0' --disable-filter=true
+
+ ## try the url in the browser:  http://<EC2-Public-IP>:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/   
+ ###  ## try the url in the browser:  http://18.176.215.11:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/   
+
 
 sudo kubectl get pods -A
 sudo kubectl get nodes
