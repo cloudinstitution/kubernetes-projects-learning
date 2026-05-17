@@ -144,13 +144,6 @@ EOF
 
 echo ""
 echo "======================================="
-echo " Dashboard Login Token "
-echo "======================================="
-
-kubectl -n kubernetes-dashboard create token admin-user
-
-echo ""
-echo "======================================="
 echo " Starting Dashboard Port Forward "
 echo "======================================="
 
@@ -163,6 +156,21 @@ echo "Dashboard URL:"
 echo "https://$PUBLIC_IP:8443"
 echo ""
 
+
+
+echo ""
+echo "======================================="
+echo " Cluster Status "
+echo "======================================="
+
+kubectl get nodes
+
+echo ""
+echo "======================================="
+echo " Kubernetes Master Setup Completed "
+echo "======================================="
+
+
 echo "======================================="
 echo " Worker Join Command "
 echo "======================================="
@@ -171,13 +179,10 @@ kubeadm token create --print-join-command
 
 echo ""
 echo "======================================="
-echo " Cluster Status "
+echo " Dashboard Login Token "
 echo "======================================="
 
-kubectl get nodes
-kubectl get pods -A
 
-echo ""
-echo "======================================="
-echo " Kubernetes Master Setup Completed "
-echo "======================================="
+kubectl -n kubernetes-dashboard create token admin-user
+
+
