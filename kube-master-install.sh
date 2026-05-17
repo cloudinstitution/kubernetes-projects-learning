@@ -106,3 +106,7 @@ kubectl get pods -A
 echo "=============================="
 echo " Kubernetes Installation Completed "
 echo "=============================="
+
+kubeadm token create --print-join-command
+
+
