@@ -11,7 +11,8 @@ swapoff -a
 sed -i '/swap/d' /etc/fstab
 
 # Install required packages
-dnf install -y iproute-tc curl
+# Amazon Linux 2023 already includes curl-minimal
+dnf install -y iproute-tc
 
 # Load kernel modules
 modprobe overlay
@@ -35,7 +36,7 @@ sysctl --system
 setenforce 0 || true
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
-# Kubernetes repo
+# Kubernetes Repository
 KUBERNETES_VERSION=v1.29
 
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
@@ -47,7 +48,7 @@ gpgcheck=1
 gpgkey=https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/rpm/repodata/repomd.xml.key
 EOF
 
-# CRI-O repo
+# CRI-O Repository
 PROJECT_PATH=prerelease:/main
 
 cat <<EOF | tee /etc/yum.repos.d/cri-o.repo
@@ -75,6 +76,7 @@ echo " Initializing Kubernetes Cluster "
 echo "======================================="
 
 # Initialize cluster
+# Ignore RAM validation for small lab instances
 kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=Mem
 
 echo "======================================="
@@ -94,7 +96,8 @@ echo "======================================="
 
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
-sleep 30
+echo "Waiting for Flannel to stabilize..."
+sleep 60
 
 echo "======================================="
 echo " Allow Scheduling on Master Node "
@@ -108,7 +111,8 @@ echo "======================================="
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 
-sleep 20
+echo "Waiting for Dashboard Pods..."
+sleep 40
 
 echo "======================================="
 echo " Creating Dashboard Admin User "
@@ -126,41 +130,41 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: admin-user
+
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
+
 subjects:
 - kind: ServiceAccount
   name: admin-user
   namespace: kubernetes-dashboard
 EOF
 
+echo ""
 echo "======================================="
-echo " Dashboard Token "
+echo " Dashboard Login Token "
 echo "======================================="
 
 kubectl -n kubernetes-dashboard create token admin-user
 
 echo ""
 echo "======================================="
-echo " Dashboard Access "
+echo " Starting Dashboard Port Forward "
 echo "======================================="
-echo ""
+
+nohup kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard 8443:443 --address 0.0.0.0 > /tmp/dashboard.log 2>&1 &
 
 PUBLIC_IP=$(curl -s ifconfig.me)
 
-echo "Run this command in another terminal:"
 echo ""
-echo "kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard 8443:443 --address 0.0.0.0"
-echo ""
-echo "Then open:"
-echo ""
+echo "Dashboard URL:"
 echo "https://$PUBLIC_IP:8443"
 echo ""
 
 echo "======================================="
-echo " Worker Node Join Command "
+echo " Worker Join Command "
 echo "======================================="
 
 kubeadm token create --print-join-command
