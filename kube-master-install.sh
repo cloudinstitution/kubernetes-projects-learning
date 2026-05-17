@@ -93,12 +93,6 @@ echo "=============================="
 # Install Flannel CNI
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
-echo "=============================="
-echo " Allow Scheduling on Master Node "
-echo "=============================="
-
-# For single node cluster
-kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true
 
 echo "=============================="
 echo " Cluster Status "
