@@ -17,21 +17,25 @@ echo "======================================="
 echo " Installing Docker "
 echo "======================================="
 
-# Install required packages
 # Amazon Linux 2023 already includes curl-minimal
 sudo dnf install -y docker conntrack wget
 
 # Enable Docker
 sudo systemctl enable --now docker
 
-# Add ec2-user to docker group
+# Add current user to docker group
 sudo usermod -aG docker ec2-user || true
+
+# Apply docker group without logout
+newgrp docker <<EONG
+echo "Docker group applied"
+EONG
 
 echo "======================================="
 echo " Installing kubectl "
 echo "======================================="
 
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+curl -LO "https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
@@ -48,23 +52,38 @@ sudo install minikube /usr/local/bin/minikube
 rm -f minikube
 
 echo "======================================="
+echo " Removing Wrong KUBECONFIG "
+echo "======================================="
+
+unset KUBECONFIG
+
+echo "======================================="
 echo " Starting Minikube "
 echo "======================================="
 
-sudo minikube start --driver=docker --force
+minikube start --driver=docker --force
 
 echo "======================================="
 echo " Enabling Dashboard "
 echo "======================================="
 
-sudo minikube addons enable dashboard
-sudo minikube addons enable metrics-server
+minikube addons enable dashboard
+minikube addons enable metrics-server
+
+echo "Waiting for dashboard pods..."
+sleep 30
+
+echo "======================================="
+echo " Verifying Dashboard "
+echo "======================================="
+
+kubectl get pods -n kubernetes-dashboard
 
 echo "======================================="
 echo " Starting Dashboard Port Forward "
 echo "======================================="
 
-nohup sudo kubectl port-forward --address 0.0.0.0 -n kubernetes-dashboard service/kubernetes-dashboard 8443:80 > /tmp/dashboard-portforward.log 2>&1 &
+nohup kubectl port-forward --address 0.0.0.0 -n kubernetes-dashboard service/kubernetes-dashboard 8443:80 > /tmp/dashboard-portforward.log 2>&1 &
 
 sleep 10
 
@@ -83,13 +102,10 @@ echo "======================================="
 echo " Cluster Status "
 echo "======================================="
 
-sudo kubectl get nodes
+kubectl get nodes
+kubectl get pods -A
 
 echo ""
 echo "======================================="
-echo " Minikube Dashboard URL "
+echo " Minikube Installation Completed "
 echo "======================================="
-echo ""
-
-echo "http://$PUBLIC_IP:8443"
-echo ""
