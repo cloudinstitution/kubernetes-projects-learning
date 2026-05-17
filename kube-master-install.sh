@@ -1,13 +1,19 @@
 #!/bin/bash
 
-# Disable swap
+set -e
+
+echo "=============================="
+echo " Kubernetes Setup Starting "
+echo "=============================="
+
+# Disable swap permanently
 swapoff -a
 sed -i '/swap/d' /etc/fstab
 
-# Install required package
-dnf install -y iproute-tc
+# Install required packages
+dnf install -y iproute-tc curl
 
-# Kernel modules
+# Load kernel modules
 modprobe overlay
 modprobe br_netfilter
 
@@ -16,20 +22,20 @@ overlay
 br_netfilter
 EOF
 
-# Sysctl settings
+# Kubernetes networking settings
 cat <<EOF | tee /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward = 1
 EOF
 
 sysctl --system
 
 # Disable SELinux
-setenforce 0
+setenforce 0 || true
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
-# Kubernetes repo
+# Kubernetes Repository
 KUBERNETES_VERSION=v1.29
 
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
@@ -41,7 +47,7 @@ gpgcheck=1
 gpgkey=https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/rpm/repodata/repomd.xml.key
 EOF
 
-# CRI-O repo
+# CRI-O Repository
 PROJECT_PATH=prerelease:/main
 
 cat <<EOF | tee /etc/yum.repos.d/cri-o.repo
@@ -53,27 +59,57 @@ gpgcheck=1
 gpgkey=https://pkgs.k8s.io/addons:/cri-o:/$PROJECT_PATH/rpm/repodata/repomd.xml.key
 EOF
 
-# Install packages
+# Install Kubernetes packages
 dnf install -y cri-o kubelet kubeadm kubectl
 
-# Enable services
+# Enable and start services
+systemctl daemon-reload
 systemctl enable --now crio
 systemctl enable --now kubelet
 
-# Initialize Kubernetes cluster
+echo "=============================="
+echo " Initializing Kubernetes "
+echo "=============================="
+
+# Initialize Kubernetes Cluster
 kubeadm init --pod-network-cidr=10.244.0.0/16
 
-# Configure kubectl
+echo "=============================="
+echo " Configuring kubectl "
+echo "=============================="
+
+# Configure kubectl for current user
 mkdir -p $HOME/.kube
-cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
 
-# Export kubeconfig
+# Set kubeconfig environment
 export KUBECONFIG=/etc/kubernetes/admin.conf
+echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> ~/.bashrc
 
-# Install Flannel network plugin
+echo "=============================="
+echo " Installing Flannel Network "
+echo "=============================="
+
+# Install Flannel CNI
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
-# Verify cluster
+echo "=============================="
+echo " Allow Scheduling on Master Node "
+echo "=============================="
+
+# For single node cluster
+kubectl taint nodes --all node-role.kubernetes.io/control-plane- || true
+
+echo "=============================="
+echo " Cluster Status "
+echo "=============================="
+
+sleep 20
+
 kubectl get nodes
 kubectl get pods -A
+
+echo "=============================="
+echo " Kubernetes Installation Completed "
+echo "=============================="
