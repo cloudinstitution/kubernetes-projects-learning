@@ -185,4 +185,17 @@ echo "======================================="
 
 kubectl -n kubernetes-dashboard create token admin-user
 
+echo ""
+echo "======================================="
+echo " Getting Public Dashboard URL "
+echo "======================================="
+
+PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
+
+echo ""
+echo "Dashboard URL:"
+echo "https://${PUBLIC_IP}:8443"
+echo ""
+
+echo "You can access Kubernetes Dashboard using the above URL."
 
