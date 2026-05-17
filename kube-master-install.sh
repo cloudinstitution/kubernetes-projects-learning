@@ -72,8 +72,7 @@ echo " Initializing Kubernetes "
 echo "=============================="
 
 # Initialize Kubernetes Cluster
-kubeadm init --pod-network-cidr=10.244.0.0/16
-
+kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=Mem
 echo "=============================="
 echo " Configuring kubectl "
 echo "=============================="
