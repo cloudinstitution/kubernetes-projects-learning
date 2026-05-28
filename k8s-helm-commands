@@ -1,0 +1,3 @@
+helm version
+helm repo list
+helm list
