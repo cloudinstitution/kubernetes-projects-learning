@@ -1,3 +1,296 @@
+# Prometheus and Grafana Installation on Minikube (EC2)
+
+This guide explains how to install Prometheus and Grafana on a Minikube Kubernetes cluster running on an AWS EC2 instance using Helm.
+
+## Install Helm
+
+Helm is the package manager for Kubernetes that simplifies application deployment using Helm charts.
+
+```bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
+
+Verify Helm installation:
+
+```bash
 helm version
+```
+
+List configured Helm repositories:
+
+```bash
 helm repo list
+```
+
+List installed Helm releases:
+
+```bash
 helm list
+```
+
+---
+
+## Add Prometheus Helm Repository
+
+Add the Prometheus Community Helm repository and update the local repository cache.
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+helm repo update
+```
+
+---
+
+## Create Monitoring Namespace
+
+Create a dedicated namespace for monitoring components.
+
+```bash
+kubectl create namespace monitoring
+```
+
+Verify namespace creation:
+
+```bash
+kubectl get ns
+```
+
+---
+
+## Install Prometheus and Grafana
+
+Install the kube-prometheus-stack Helm chart, which includes:
+
+* Prometheus Server
+* Grafana
+* Alertmanager
+* Node Exporter
+* Kubernetes Monitoring Components
+
+```bash
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring
+```
+
+Check the deployment status:
+
+```bash
+kubectl get pods -n monitoring
+```
+
+List only pods belonging to the Prometheus release:
+
+```bash
+kubectl --namespace monitoring get pods -l "release=prometheus"
+```
+
+Wait until all pods are in the Running state.
+
+---
+
+## Retrieve Grafana Admin Password
+
+Grafana's default username is:
+
+```text
+admin
+```
+
+Retrieve the admin password from Kubernetes Secret:
+
+```bash
+kubectl --namespace monitoring get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+```
+
+---
+
+## Expose Grafana Service
+
+Create a NodePort service to access Grafana externally.
+
+```bash
+kubectl expose service prometheus-grafana \
+--type=NodePort \
+--target-port=3000 \
+--name=grafana-external \
+-n monitoring
+```
+
+Verify service:
+
+```bash
+kubectl get svc -n monitoring
+```
+
+---
+
+## Expose Prometheus Service
+
+Create a NodePort service to access Prometheus externally.
+
+```bash
+kubectl expose service prometheus-kube-prometheus-prometheus \
+--type=NodePort \
+--target-port=9090 \
+--name=prometheus-external \
+-n monitoring
+```
+
+Verify service:
+
+```bash
+kubectl get svc -n monitoring
+```
+
+---
+
+## Port Forward Prometheus
+
+Forward Prometheus service to port 9090 on the EC2 instance.
+
+```bash
+kubectl port-forward --address 0.0.0.0 svc/prometheus-kube-prometheus-prometheus 9090:9090 -n monitoring &
+```
+
+Access Prometheus:
+
+```text
+http://<EC2-PUBLIC-IP>:9090
+```
+
+---
+
+## Port Forward Grafana
+
+Forward Grafana service to port 3000 on the EC2 instance.
+
+```bash
+kubectl port-forward --address 0.0.0.0 svc/prometheus-grafana 3000:80 -n monitoring &
+```
+
+Access Grafana:
+
+```text
+http://<EC2-PUBLIC-IP>:3000
+```
+
+---
+
+## Get Minikube Service URLs
+
+Generate Minikube service URLs for external access.
+
+Prometheus URL:
+
+```bash
+minikube service prometheus-external -n monitoring --url
+```
+
+Grafana URL:
+
+```bash
+minikube service grafana-external -n monitoring --url
+```
+
+---
+
+## Verify Installation
+
+Check all pods:
+
+```bash
+kubectl get pods -n monitoring
+```
+
+Check all services:
+
+```bash
+kubectl get svc -n monitoring
+```
+
+Check Helm release:
+
+```bash
+helm list -n monitoring
+```
+
+---
+
+## Access Details
+
+### Grafana
+
+URL:
+
+```text
+http://<EC2-PUBLIC-IP>:3000
+```
+
+Username:
+
+```text
+admin
+```
+
+Password:
+
+```bash
+kubectl --namespace monitoring get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+```
+
+### Prometheus
+
+URL:
+
+```text
+http://<EC2-PUBLIC-IP>:9090
+```
+
+---
+
+## Cleanup
+
+Remove Prometheus and Grafana:
+
+```bash
+helm uninstall prometheus -n monitoring
+```
+
+Delete monitoring namespace:
+
+```bash
+kubectl delete namespace monitoring
+```
+
+---
+
+## Architecture
+
+```text
++----------------------+
+|      Browser         |
++----------+-----------+
+           |
+           |
+           v
++----------------------+
+|      EC2 Instance    |
+|                      |
+|  +---------------+   |
+|  |   Minikube    |   |
+|  +-------+-------+   |
+|          |           |
+|  +-------+-------+   |
+|  | Prometheus    |   |
+|  +---------------+   |
+|                      |
+|  +---------------+   |
+|  |   Grafana     |   |
+|  +---------------+   |
++----------------------+
+```
+
+This setup provides a complete Kubernetes monitoring solution using Prometheus and Grafana running on Minikube inside an EC2 instance.
+
+
+
