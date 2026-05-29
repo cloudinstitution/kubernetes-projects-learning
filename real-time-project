@@ -1,1 +1,3 @@
 kubectl get nodes
+minikube addons enable ingress
+kubectl get pods -n ingress-nginx
