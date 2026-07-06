@@ -1,30 +1,41 @@
+
+Cluster related command 
+=======================
 kubectl cluster-info
 kubectl config view
+node related command 
+======================
 sudo kubectl get nodes
+
+pod related command 
+======================
 kubectl get pods
 kubectl run nginx-pod --image=nginx 
-kubectl get svc
 Kubectl apply -f deployment.yaml 
 kubectl describe pod <pod-name>
-kubectl scale deployment nginx-deployment --replicas=6
 kubectl delete pod myapp-pod
 kubectl delete -f deployment.yaml
 kubectl get pods -o wide
 kubectl logs cloudinstitute-replicaset-kq6wz 
+# login to the pod 
+kubectl exec nginx -it -- /bin/sh  ###  -it means interactive terminal 
+kubectl exec nginx-pod  -it -- /bin/bash
+# login to the specific conatiner in the pod.
+kubectl exec -n default multi-pod  --container nginx-container -it -- /bin/bash 
+
+Deployment 
+============
+kubectl create deployment nginx-deployment --image=nginx --replicas=3
+kubectl scale deployment nginx-deployment --replicas=6
+
+service 
+=========
+kubectl get svc
 
 Volume
 ========
-
 kubectl get PersistentVolume
 kubectl apply -f volume.yaml
-
-# login to the pod 
-kubectl exec nginx -it -- /bin/sh  ###  -it means interactive terminal 
-# or 
-kubectl exec nginx-pod  -it -- /bin/bash
-
-# login to the specific conatiner in the pod.
-kubectl exec -n default multi-pod  --container nginx-container -it -- /bin/bash 
 
 # how to check the os version of kubernets.
 cat /etc/os-release
