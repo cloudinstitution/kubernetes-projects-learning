@@ -1,0 +1,13 @@
+[Unit]
+Description=Socat TCP Forwarder 30080
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/socat TCP-LISTEN:30080,fork,reuseaddr TCP:192.168.49.2:30080
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
